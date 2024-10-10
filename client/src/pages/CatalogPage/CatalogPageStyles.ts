@@ -44,6 +44,28 @@ export const Error = styled.p`
   margin-bottom: 1rem;
 `;
 
+export const FilterWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+export const FilterLabel = styled.label`
+  font-size: 1rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+export const FilterCheckbox = styled.input`
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+`;
+
+
 export const Pagination = styled.div`
   display: flex;
   justify-content: center;

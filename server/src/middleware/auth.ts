@@ -27,7 +27,7 @@ export const auth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET!) as unknown as TokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET!) as TokenPayload;
     req.userId = decoded.id;
     logger.info('Token is valid, forwarding');
     next();

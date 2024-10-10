@@ -5,6 +5,9 @@ import { fetchCatalogs, addCatalog, updateCatalog, deleteCatalog, deleteCatalogs
 import {
   PageWrapper,
   Section,
+  FilterWrapper,
+  FilterLabel,
+  FilterCheckbox,
   Title,
   BulkDeleteButton,
   Error,
@@ -25,8 +28,9 @@ const CatalogPage: React.FC = () => {
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [selectedCatalogs, setSelectedCatalogs] = useState<string[]>([]);
   const [editingCatalog, setEditingCatalog] = useState<Catalog | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);  
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [showMultiLocaleOnly, setShowMultiLocaleOnly] = useState(false)
 
   const [currentPage, setCurrentPage] = useState(1);
   const [catalogsPerPage] = useState(10);
@@ -77,6 +81,14 @@ const CatalogPage: React.FC = () => {
 
   const totalPages = Math.ceil(totalCatalogs / catalogsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1)
+
+    const handleToggleChange = () => {
+    setShowMultiLocaleOnly(!showMultiLocaleOnly);
+  };
+
+  const filteredCatalogs = showMultiLocaleOnly
+    ? catalogs.filter((catalog) => catalog.locales.length > 1)
+    : catalogs;
 
   const handleAddCatalog = async (name: string, vertical: string, locales: string[], isPrimary: boolean) => {
     if (!token) {
@@ -152,6 +164,17 @@ const CatalogPage: React.FC = () => {
         </BulkDeleteButton>
       )}
 
+      <FilterWrapper>
+        <FilterLabel>
+          <FilterCheckbox
+            type="checkbox"
+            checked={showMultiLocaleOnly}
+            onChange={handleToggleChange}
+          />
+          Show Only Multi-Locale Catalogs
+        </FilterLabel>
+      </FilterWrapper>
+
       <Section>
         {errorMessage && <Error>{errorMessage}</Error>}
         <CatalogForm
@@ -164,7 +187,7 @@ const CatalogPage: React.FC = () => {
 
       <Section>
         <CatalogList
-          catalogs={catalogs}
+          catalogs={filteredCatalogs}
           onUpdate={handleEditCatalog}
           onSelect={setSelectedCatalogs}
           onDelete={handleDeleteCatalog}

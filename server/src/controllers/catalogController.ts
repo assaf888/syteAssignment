@@ -41,6 +41,8 @@ export const addNewCatalog = async (req: AuthenticatedRequest, res: Response): P
       return;
     }
 
+    const userId = req.userId
+
     logger.info('Validating name');
     if(!name || !isValidName(name)){
       logger.info('Failed adding new catalog');
@@ -49,11 +51,11 @@ export const addNewCatalog = async (req: AuthenticatedRequest, res: Response): P
     }
 
     if (isPrimary) {
-      await Catalog.updateMany({ vertical }, { isPrimary: false });
+      await Catalog.updateMany({ vertical, userId: userId }, { isPrimary: false });
       logger.info('Changed all previous catalogs (of the same vertical) primary to false');
     }
 
-    const existingCatalog = await Catalog.findOne({ name: name.toLowerCase() });
+    const existingCatalog = await Catalog.findOne({ name: name.toLowerCase(), userId: userId });
     if (existingCatalog) {
       logger.info('A catalog with the name "${name}" already exists');
       res.status(400).json({ error: `A catalog with the name "${name}" already exists.` });
@@ -73,15 +75,26 @@ export const addNewCatalog = async (req: AuthenticatedRequest, res: Response): P
   }
 };
 
-export const updateCatalog = async (req: Request, res: Response): Promise<void> => {
+export const updateCatalog = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   const { name, vertical, isPrimary, locales } = req.body;
 
   try {
 
+    if (!req.userId) {
+      res.status(401).json({ message: 'Unauthorized: no userId found' });
+      return;
+    }
+
     logger.info('Updating selected catalog');
+
+    if (isPrimary) {
+      await Catalog.updateMany({ _id: { $ne: id }, vertical, userId: req.userId }, { isPrimary: false });
+      logger.info('Changed all previous catalogs (of the same vertical) primary to false');
+    }
+    
     const updatedCatalog = await Catalog.findByIdAndUpdate(
-      id,
+      { _id: id, userId: req.userId },
       { name, vertical, isPrimary, locales, indexedAt: new Date() },
       { new: true }
     );
@@ -90,11 +103,6 @@ export const updateCatalog = async (req: Request, res: Response): Promise<void> 
       logger.info('Failed updating catalog');
       res.status(404).json({ message: 'Catalog not found' });
       return;
-    }
-    
-    if (isPrimary) {
-      await Catalog.updateMany({ _id: { $ne: id }, vertical }, { isPrimary: false });
-      logger.info('Changed all previous catalogs (of the same vertical) primary to false');
     }
 
     res.json(updatedCatalog);
