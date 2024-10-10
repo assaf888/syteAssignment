@@ -9,7 +9,7 @@ interface AuthenticatedRequest extends Request {
 
 export const getAllCatalogs = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    logger.info('Getting catalogs for user: ', req.userId);
+    logger.info(`Getting catalogs for user: ${req.userId}`);
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -25,7 +25,7 @@ export const getAllCatalogs = async (req: AuthenticatedRequest, res: Response): 
     res.json({ catalogs, totalCount });
     return;
   } catch (error) {
-    logger.info('Error fetching catalogs:', error);
+    logger.info(`Error fetching catalogs: ${error}`);
     res.status(500).json({ message: 'Server error' });
     return;
   }
@@ -57,7 +57,7 @@ export const addNewCatalog = async (req: AuthenticatedRequest, res: Response): P
 
     const existingCatalog = await Catalog.findOne({ name: name.toLowerCase(), userId: userId });
     if (existingCatalog) {
-      logger.info('A catalog with the name "${name}" already exists');
+      logger.info(`A catalog with the name "${name}" already exists`);
       res.status(400).json({ error: `A catalog with the name "${name}" already exists.` });
       return;
     }
@@ -119,7 +119,7 @@ export const deleteCatalog = async (req: Request, res: Response): Promise<void> 
   const { id } = req.params;
 
   try {
-    logger.info('Deleting catalog', id);
+    logger.info(`Deleting catalog, ${id}`);
     const deletedCatalog = await Catalog.findByIdAndDelete(id);
 
     if (!deletedCatalog) {
